@@ -1,0 +1,18 @@
+{
+  "name": "Development Container",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/wandb/catnip/feature:1": {}
+  },
+  "forwardPorts": [
+    6369
+  ],
+  "remoteEnv": {
+    "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
+    "ANTHROPIC_AUTH_TOKEN": "${localEnv:OR_KEY}",
+    "ANTHROPIC_API_KEY": "",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "xiaomi/mimo-v2-flash:free",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "xiaomi/mimo-v2-flash:free",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "xiaomi/mimo-v2-flash:free"
+  }
+}
