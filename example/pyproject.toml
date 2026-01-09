@@ -1,0 +1,16 @@
+[project]
+name = "mutation-testing-example"
+version = "0.1.0"
+description = "Example project demonstrating mutation testing"
+requires-python = ">=3.10"
+dependencies = [
+    "mutation-testing",
+    "pytest>=7.0",
+]
+
+[tool.uv.sources]
+mutation-testing = { path = ".." }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
