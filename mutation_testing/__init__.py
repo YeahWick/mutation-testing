@@ -1,18 +1,18 @@
 """Mutation Testing Library - Runtime mutation injection for Python tests."""
 
 from .core import (
-    MutationInjector,
     Mutation,
+    MutationError,
+    MutationInjector,
     MutationResult,
-    find_mutations,
     run_mutation_tests,
 )
 
 __version__ = "0.1.0"
 __all__ = [
-    "MutationInjector",
     "Mutation",
+    "MutationError",
+    "MutationInjector",
     "MutationResult",
-    "find_mutations",
     "run_mutation_tests",
 ]

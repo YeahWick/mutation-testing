@@ -245,57 +245,10 @@ class MutationInjector:
             return None
 
 
-def find_mutations(source: str) -> List[dict]:
-    """
-    Find all possible mutation points in source code.
+class MutationError(Exception):
+    """Raised when a mutation cannot be applied."""
 
-    Returns list of dicts with line, original operator, and possible mutations.
-    """
-    tree = ast.parse(source)
-    mutations = []
-
-    binary_ops = {
-        ast.Add: ["-", "*"],
-        ast.Sub: ["+", "*"],
-        ast.Mult: ["/", "+"],
-        ast.Div: ["*", "//"],
-    }
-
-    compare_ops = {
-        ast.Gt: [">=", "<", "=="],
-        ast.GtE: [">", "<="],
-        ast.Lt: ["<=", ">", "=="],
-        ast.LtE: ["<", ">="],
-        ast.Eq: ["!="],
-        ast.NotEq: ["=="],
-    }
-
-    for node in ast.walk(tree):
-        if isinstance(node, ast.BinOp):
-            op_type = type(node.op)
-            if op_type in binary_ops:
-                mutations.append(
-                    {
-                        "line": node.lineno,
-                        "type": "binary",
-                        "original": op_type.__name__,
-                        "mutations": binary_ops[op_type],
-                    }
-                )
-        elif isinstance(node, ast.Compare):
-            for op in node.ops:
-                op_type = type(op)
-                if op_type in compare_ops:
-                    mutations.append(
-                        {
-                            "line": node.lineno,
-                            "type": "compare",
-                            "original": op_type.__name__,
-                            "mutations": compare_ops[op_type],
-                        }
-                    )
-
-    return mutations
+    pass
 
 
 def run_mutation_tests(
@@ -313,6 +266,9 @@ def run_mutation_tests(
 
     Returns:
         List of MutationResult
+
+    Raises:
+        MutationError: If a mutation pattern doesn't match any code
     """
     injector = MutationInjector()
     results = []
@@ -327,14 +283,10 @@ def run_mutation_tests(
         )
 
         if not success:
-            results.append(
-                MutationResult(
-                    mutation=mutation,
-                    killed=False,
-                    error="Failed to apply mutation",
-                )
+            raise MutationError(
+                f"[{mutation.id}] Pattern not found in {module_name}.{mutation.function}: "
+                f"'{mutation.original}'"
             )
-            continue
 
         # Run tests
         try:
