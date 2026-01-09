@@ -1,0 +1,54 @@
+# Mutation Testing Configuration
+# This file defines mutations to apply when testing
+
+version: "1.0"
+
+settings:
+  timeout: 30
+
+targets:
+  - module: "calculator"
+    file: "src/calculator.py"
+
+    mutations:
+      - id: "add-001"
+        function: "add"
+        description: "Replace + with -"
+        original: "return a + b"
+        mutant: "return a - b"
+
+      - id: "add-002"
+        function: "add"
+        description: "Replace + with *"
+        original: "return a + b"
+        mutant: "return a * b"
+
+      - id: "sub-001"
+        function: "subtract"
+        description: "Replace - with +"
+        original: "return a - b"
+        mutant: "return a + b"
+
+      - id: "pos-001"
+        function: "is_positive"
+        description: "Replace > with >="
+        original: "return x > 0"
+        mutant: "return x >= 0"
+
+      - id: "pos-002"
+        function: "is_positive"
+        description: "Replace > with <"
+        original: "return x > 0"
+        mutant: "return x < 0"
+
+      - id: "clamp-001"
+        function: "clamp"
+        description: "Off-by-one in lower bound"
+        original: "value < min_val"
+        mutant: "value <= min_val"
+
+      - id: "clamp-002"
+        function: "clamp"
+        description: "Off-by-one in upper bound"
+        original: "value > max_val"
+        mutant: "value >= max_val"
