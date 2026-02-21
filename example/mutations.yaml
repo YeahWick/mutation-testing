@@ -6,6 +6,12 @@ version: "1.0"
 settings:
   timeout: 30
 
+coverage:
+  threshold: 100.0        # require 100% of tests to have mutations
+  fail_under: true         # exit non-zero if threshold not met
+  test_paths:
+    - "tests"
+
 targets:
   - module: "calculator"
     file: "src/calculator.py"
