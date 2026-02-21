@@ -171,6 +171,106 @@ injector.restore("calculator", "add")
 injector.restore_all()
 ```
 
+## Mutation coverage report
+
+The coverage report tracks which of your test functions have corresponding mutations defined. This helps you ensure every test is validated by at least one mutation, and can fail CI when coverage drops below a threshold.
+
+### Configure in YAML
+
+Add a `coverage` section to your `mutations.yaml`:
+
+```yaml
+coverage:
+  threshold: 100.0        # minimum percentage of tests that must have mutations
+  fail_under: true         # exit non-zero if threshold not met
+  test_paths:
+    - "tests"
+  test_mappings:           # optional: override the default naming convention
+    test_boundary_check:
+      - "clamp"
+      - "is_positive"
+```
+
+By default, tests are mapped to source functions by naming convention — `test_add` maps to `add`, `test_is_positive` maps to `is_positive`. Use `test_mappings` when a test name doesn't match its source function.
+
+### Generate the report
+
+```python
+from mutation_testing import MutationRunner
+
+runner = MutationRunner(run_tests)
+coverage = runner.coverage_from_config("mutations.yaml")
+
+# Check results programmatically
+if not coverage.meets_threshold:
+    sys.exit(1)
+```
+
+Or use the standalone function:
+
+```python
+from mutation_testing import generate_coverage_report, print_coverage_report
+
+report = generate_coverage_report(
+    test_paths=["tests"],
+    mutation_config_path="mutations.yaml",
+    threshold=100.0,
+)
+print_coverage_report(report)
+
+# JSON output for CI integration
+print(report.to_json())
+```
+
+### Output
+
+```
+============================================================
+MUTATION COVERAGE REPORT
+============================================================
+
+[✓] test_add
+      functions: add
+      mutations: 2 (add-001, add-002)
+[✓] test_subtract
+      functions: subtract
+      mutations: 1 (sub-001)
+[✗] test_multiply
+      functions: multiply
+      mutations: 0
+
+============================================================
+COVERAGE SUMMARY
+============================================================
+Total tests:     3
+Covered:         2
+Uncovered:       1
+Coverage:        66.7%
+Threshold:       100.0%
+Status:          FAIL
+============================================================
+
+UNCOVERED TESTS (add mutations for these!):
+  - test_multiply -> multiply
+```
+
+### CI usage
+
+Use the exit code to fail CI pipelines:
+
+```python
+coverage = runner.coverage_from_config("mutations.yaml")
+sys.exit(0 if coverage.meets_threshold else 1)
+```
+
+### Coverage classes
+
+| Class | Purpose |
+|---|---|
+| `CoverageReport` | Full report with `total_tests`, `covered_tests`, `coverage_percent`, `meets_threshold`, `all_covered` |
+| `TestCoverage` | Per-test status with `test_name`, `mapped_functions`, `mutations`, `covered` |
+| `CoverageConfig` | YAML settings: `threshold`, `fail_under`, `test_paths`, `test_mappings` |
+
 ## Supported mutation patterns
 
 The AST pattern matcher supports any valid Python expression or statement:
@@ -190,6 +290,7 @@ mutation_testing/
 ├── __init__.py     # Public API exports
 ├── core.py         # AST pattern matching, injection engine, Mutation/MutationResult
 ├── config.py       # YAML configuration loader
+├── coverage.py     # Mutation coverage reporting
 └── runner.py       # MutationRunner and MutationReport
 
 example/
@@ -207,6 +308,7 @@ example/
 | **Killed** | Tests detected the mutation (test failed) |
 | **Survived** | Tests passed despite the mutation — tests need improvement |
 | **Mutation score** | Killed / Total (higher is better) |
+| **Mutation coverage** | Percentage of tests that have at least one mutation defined |
 
 ## License
 

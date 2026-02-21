@@ -2,11 +2,16 @@
 
 import sys
 from pathlib import Path
-from typing import Callable, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 from dataclasses import dataclass
 
 from .core import Mutation, MutationResult, run_mutation_tests
 from .config import MutationConfig
+from .coverage import (
+    CoverageReport,
+    generate_coverage_report,
+    print_coverage_report,
+)
 
 
 @dataclass
@@ -113,6 +118,56 @@ class MutationRunner:
             print(f"[{symbol}] [{result.mutation.id}] {result.mutation.description}: {status}")
             if result.error:
                 print(f"    Error: {result.error}")
+
+    def coverage_from_config(
+        self,
+        config_path: Union[str, Path],
+        test_paths: Optional[List[Union[str, Path]]] = None,
+        threshold: Optional[float] = None,
+        test_mappings: Optional[Dict[str, List[str]]] = None,
+    ) -> CoverageReport:
+        """Generate a mutation coverage report from a config file.
+
+        Args:
+            config_path: Path to the mutations YAML config.
+            test_paths: Paths to test files/directories. Overrides the
+                config's ``coverage.test_paths`` if provided.
+            threshold: Minimum coverage percentage (0-100). Overrides
+                the config's ``coverage.threshold`` if provided.
+            test_mappings: Explicit test-to-function mappings. Merged
+                with the config's ``coverage.test_mappings``.
+
+        Returns:
+            CoverageReport with per-test coverage details.
+        """
+        config = MutationConfig.from_yaml(config_path)
+
+        cov = config.coverage
+        effective_threshold = threshold if threshold is not None else (
+            cov.threshold if cov else 100.0
+        )
+        effective_paths = test_paths or (cov.test_paths if cov else [])
+        effective_mappings = dict(cov.test_mappings) if cov else {}
+        if test_mappings:
+            effective_mappings.update(test_mappings)
+
+        if not effective_paths:
+            raise ValueError(
+                "No test paths provided. Pass test_paths or set "
+                "coverage.test_paths in the YAML config."
+            )
+
+        report = generate_coverage_report(
+            test_paths=effective_paths,
+            mutation_config_path=config_path,
+            threshold=effective_threshold,
+            test_mappings=effective_mappings or None,
+        )
+
+        if self.verbose:
+            print_coverage_report(report)
+
+        return report
 
     def _print_summary(self, report: MutationReport):
         print()

@@ -2,9 +2,10 @@
 """
 Example: Run mutation testing on the calculator module.
 
-Shows two ways to use the mutation testing library:
+Shows three ways to use the mutation testing library:
 1. From config file (simplest)
 2. Explicitly defining mutations
+3. Generating a mutation coverage report
 """
 
 import sys
@@ -35,9 +36,14 @@ def run_tests() -> bool:
 
 def main():
     runner = MutationRunner(run_tests)
+    config_path = Path(__file__).parent / "mutations.yaml"
+
+    # Check for --coverage flag
+    if "--coverage" in sys.argv:
+        coverage = runner.coverage_from_config(config_path)
+        return 0 if coverage.meets_threshold else 1
 
     # Option 1: Run from config file
-    config_path = Path(__file__).parent / "mutations.yaml"
     report = runner.run_from_config(config_path)
 
     # Option 2: Run explicitly
