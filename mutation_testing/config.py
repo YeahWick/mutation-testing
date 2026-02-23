@@ -2,10 +2,20 @@
 
 import yaml
 from pathlib import Path
-from typing import List, Optional, Union
-from dataclasses import dataclass
+from typing import Dict, List, Optional, Union
+from dataclasses import dataclass, field
 
 from .core import Mutation
+
+
+@dataclass
+class CoverageConfig:
+    """Coverage report settings from the YAML config."""
+
+    threshold: float = 100.0
+    fail_under: bool = False
+    test_paths: List[str] = field(default_factory=list)
+    test_mappings: Dict[str, List[str]] = field(default_factory=dict)
 
 
 @dataclass
@@ -15,6 +25,7 @@ class MutationConfig:
     mutations: List[Mutation]
     module: str
     timeout: int = 30
+    coverage: Optional[CoverageConfig] = None
 
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> "MutationConfig":
@@ -42,4 +53,18 @@ class MutationConfig:
         if not module:
             raise ValueError("No module specified in config")
 
-        return cls(mutations=mutations, module=module, timeout=timeout)
+        # Parse coverage settings
+        coverage = None
+        cov_data = data.get("coverage")
+        if cov_data:
+            coverage = CoverageConfig(
+                threshold=float(cov_data.get("threshold", 100.0)),
+                fail_under=bool(cov_data.get("fail_under", False)),
+                test_paths=cov_data.get("test_paths", []),
+                test_mappings={
+                    k: v if isinstance(v, list) else [v]
+                    for k, v in cov_data.get("test_mappings", {}).items()
+                },
+            )
+
+        return cls(mutations=mutations, module=module, timeout=timeout, coverage=coverage)
