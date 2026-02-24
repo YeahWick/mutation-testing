@@ -19,9 +19,17 @@ The **mutation score** is the percentage of mutations killed. A higher score mea
 Requires Python 3.10+.
 
 ```bash
-pip install -e .
+pip install mutation-testing
 
-# With dev dependencies (pytest)
+# Or with uv
+uv add mutation-testing
+```
+
+For development:
+
+```bash
+git clone https://github.com/YeahWick/mutation-testing.git
+cd mutation-testing
 pip install -e ".[dev]"
 ```
 
